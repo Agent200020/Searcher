@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка изображения</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .form-group label {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border-color: #007bff;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0056b3;
+            box-shadow: 0 0 5px rgba(0, 86, 179, 0.5);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            width: 100%;
+            font-size: 1.1rem;
+            padding: 10px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+            transform: scale(1.05);
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 30px;
+            color: #777;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        #previewContainer {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        #previewImage:hover {
+            transform: scale(1.05);
+        }
+
+        #results {
+            margin-top: 30px;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .card img:hover {
+            transform: scale(1.1);
+        }
+
+        .empty-results {
+            font-size: 1.2rem;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .card-text {
+            font-size: 0.95rem;
+        }
+
+        .search-button {
+            width: 100%;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        #loadMore {
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #loadMore:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: scale(1.05);
+        }
+
+        /* Плавное появление элементов */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Анимация для заголовка */
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Загрузить изображение</h1>
+
+        <form action="/upload_image" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="form-group">
+                <label for="model">Выберите модель для распознавания:</label>
+                <select id="model" name="model" class="form-control">
+                    <option value="resnet50">ResNet50</option>
+                    <option value="vgg16">VGG16</option>
+                    <option value="efficientnet_b0">EfficientNet B0</option>
+                    <option value="inception_v3">Inception V3</option>
+                    <option value="convnext_base">ConvNeXt Base</option>
+                    <option value="regnet_y_16gf">RegNet Y 16GF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="file">Выберите файл для загрузки:</label>
+                <input type="file" id="file" name="file" class="form-control">
+            </div>
+
+            <div id="previewContainer" class="text-center mt-3" style="display: none;">
+                <h5>Загруженное изображение:</h5>
+                <img id="previewImage" src="" class="img-fluid rounded shadow" style="max-width: 100%; height: auto;" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Искать</button>
+        </form>
+
+        <section id="results" class="mt-5"></section>
+        <button id="loadMore" class="btn btn-primary mt-3" style="display: none;">Показать ещё</button>
+
+        <!-- Подвал с ссылкой на главную страницу -->
+        <div class="footer mt-4">
+            <p>Вернуться на <a href="/">главную страницу</a></p>
+        </div>
+    </div>
+
+    <!-- Подключение jQuery и Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $('#file').change(function(event) {
+            previewImage();
+        });
+
+        function previewImage() {
+            var file = $('#file')[0].files[0];
+
+            if (file) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    $('#previewImage').attr('src', e.target.result);
+                    $('#previewContainer').show(); // Показываем блок предпросмотра
+                };
+
+                reader.readAsDataURL(file);
+            } else {
+                $('#previewContainer').hide(); // Скрываем, если файла нет
+            }
+        }
+    </script>
+
+
+
+
+    <script>
+    var allResults = []; // Массив для всех результатов
+    var currentIndex = 0; // Индекс для отслеживания, сколько картинок было показано
+
+    $('#uploadForm').submit(function(event) {
+        event.preventDefault();
+
+        var file = $('#file')[0].files[0];  // Получаем выбранный файл
+        var model_name = $('#model').val(); // Получаем выбранную модель
+
+        // Проверяем, что файл выбран
+        if (!file) {
+            alert('Пожалуйста, выберите файл для загрузки.');
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('model', model_name); // Добавляем выбранную модель
+
+        // AJAX запрос для загрузки файла
+        $.ajax({
+            url: '/upload_image',  // Убедитесь, что этот URL соответствует вашему Flask маршруту
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function(data) {
+                console.log('Data received from server:', data);  // Логируем все полученные данные
+
+                allResults = data;  // Сохраняем все результаты
+                currentIndex = 0;  // Сбрасываем индекс
+                var resultsDiv = $('#results');
+                resultsDiv.empty();  // Очищаем контейнер для картинок
+
+                loadMoreResults();  // Загружаем первые 10 картинок
+                $('#loadMore').show();  // Показываем кнопку "Показать ещё"
+            },
+
+            error: function(err) {
+                console.log(err);
+            }
+        });
+    });
+
+    // Функция для загрузки следующих 10 картинок
+    $('#loadMore').click(function() {
+        loadMoreResults();
+    });
+
+    function loadMoreResults() {
+        var resultsDiv = $('#results');
+        var endIndex = Math.min(currentIndex + 10, allResults.length); // Вычисляем конечный индекс
+
+        for (var i = currentIndex; i < endIndex; i++) {
+            var item = allResults[i];
+            var imgPath = item.image_path;  // Пример: /uploads/1348304997_afe60a61df.jpg
+            resultsDiv.append(
+                '<div class="card mb-3 shadow-sm">' +
+                    '<div class="card-body">' +
+                        '<h5 class="card-title">Сходство: ' + item.similarity.toFixed(2) + '</h5>' +
+                        '<img src="/static/' + imgPath + '" alt="Изображение" class="img-fluid rounded" />' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        currentIndex = endIndex; // Обновляем индекс
+
+        if (currentIndex >= allResults.length) {
+            $('#loadMore').hide();  // Скрываем кнопку, если больше нет картинок
+        }
+    }
+</script>
+</body>
+</html>
